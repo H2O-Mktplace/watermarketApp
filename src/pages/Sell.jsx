@@ -17,7 +17,6 @@ export default function Sell() {
         diameter: '',
         carbon: '',
         year: '',
-        year: '',
         isCustomModel: false,
         // Wingfoil Specific
         mastLength: '',
