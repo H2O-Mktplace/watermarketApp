@@ -15,7 +15,9 @@ import Privacy from './pages/Privacy'
 import Terms from './pages/Terms'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { CartProvider } from './context/CartContext';
+import { NotificationProvider } from './context/NotificationContext';
 import CartSidebar from './components/CartSidebar';
+import NotificationToast from './components/NotificationToast';
 
 function AppContent() {
   const { user } = useAuth();
@@ -49,6 +51,7 @@ function AppContent() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[var(--color-background)]">
+      <NotificationToast />
       <CartSidebar />
 
       <Navbar
@@ -90,9 +93,11 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <CartProvider>
-          <AppContent />
-        </CartProvider>
+        <NotificationProvider>
+          <CartProvider>
+            <AppContent />
+          </CartProvider>
+        </NotificationProvider>
       </AuthProvider>
     </Router>
   )
