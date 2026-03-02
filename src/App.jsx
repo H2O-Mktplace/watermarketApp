@@ -16,8 +16,10 @@ import Terms from './pages/Terms'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { CartProvider } from './context/CartContext';
 import { NotificationProvider } from './context/NotificationContext';
+import { ChatProvider } from './context/ChatContext';
 import CartSidebar from './components/CartSidebar';
 import NotificationToast from './components/NotificationToast';
+import ChatSidebar from './components/ChatSidebar';
 
 function AppContent() {
   const { user } = useAuth();
@@ -53,6 +55,7 @@ function AppContent() {
     <div className="min-h-screen flex flex-col bg-[var(--color-background)]">
       <NotificationToast />
       <CartSidebar />
+      <ChatSidebar />
 
       <Navbar
         currentPage={location.pathname} // Simplified relative to Router
@@ -94,9 +97,11 @@ function App() {
     <Router>
       <AuthProvider>
         <NotificationProvider>
-          <CartProvider>
-            <AppContent />
-          </CartProvider>
+          <ChatProvider>
+            <CartProvider>
+              <AppContent />
+            </CartProvider>
+          </ChatProvider>
         </NotificationProvider>
       </AuthProvider>
     </Router>

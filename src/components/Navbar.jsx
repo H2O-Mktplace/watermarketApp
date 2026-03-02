@@ -1,4 +1,4 @@
-import { LayoutGrid, PlusCircle, SlidersHorizontal, Search, User, LogOut, Package, ShoppingBag, Bell } from 'lucide-react';
+import { LayoutGrid, PlusCircle, SlidersHorizontal, Search, User, LogOut, Package, ShoppingBag, MessageCircle } from 'lucide-react';
 import logo from '../assets/logo_wm_transparent.png';
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
@@ -6,21 +6,20 @@ import { getSearchSuggestions } from '../data';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useNotification } from '../context/NotificationContext';
+import { useChat } from '../context/ChatContext';
 
 
 export default function Navbar({ currentPage, onNavigate, onToggleFilters, searchTerm, onSearchChange }) {
     const { user, signOut } = useAuth();
     const { cartCount, setIsCartOpen } = useCart();
-    const { notifications, unreadCount, markAsRead, markAllAsRead, addNotification, addToast } = useNotification();
+    const { notifications, unreadCount, markAsRead: markNotificationRead, markAllAsRead, addNotification, addToast } = useNotification();
+    const { totalUnreadChats, setIsChatSidebarOpen } = useChat();
 
     const [isSearchFocused, setIsSearchFocused] = useState(false);
     const [suggestions, setSuggestions] = useState([]);
 
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
     const userMenuRef = useRef(null);
-
-    const [isNotificationMenuOpen, setIsNotificationMenuOpen] = useState(false);
-    const notificationMenuRef = useRef(null);
 
     // Update suggestions when searchTerm changes
     useEffect(() => {
@@ -36,9 +35,6 @@ export default function Navbar({ currentPage, onNavigate, onToggleFilters, searc
         function handleClickOutside(event) {
             if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
                 setIsUserMenuOpen(false);
-            }
-            if (notificationMenuRef.current && !notificationMenuRef.current.contains(event.target)) {
-                setIsNotificationMenuOpen(false);
             }
         }
         document.addEventListener("mousedown", handleClickOutside);
@@ -193,73 +189,17 @@ export default function Navbar({ currentPage, onNavigate, onToggleFilters, searc
                             )}
                         </button>
 
-                        {/* Notifications Button */}
-                        <div className="relative" ref={notificationMenuRef}>
+                        {/* Messages Button (Triggers Chat Sidebar) */}
+                        <div className="relative flex items-center justify-center">
                             <button
-                                onClick={() => setIsNotificationMenuOpen(!isNotificationMenuOpen)}
-                                className="relative p-2 text-slate-200 hover:text-white transition-colors"
+                                onClick={() => setIsChatSidebarOpen(true)}
+                                className="relative p-2 text-slate-200 hover:text-white transition-colors flex items-center justify-center"
                             >
-                                <Bell size={24} />
-                                {unreadCount > 0 && (
-                                    <span className="absolute top-1 right-2 h-2.5 w-2.5 rounded-full bg-[#0EA5E9] border-2 border-[var(--color-dark)] shadow-[0_0_8px_rgba(14,165,233,0.8)] animate-pulse"></span>
+                                <MessageCircle size={26} strokeWidth={1.5} className="relative z-10" />
+                                {totalUnreadChats > 0 && (
+                                    <span className="absolute top-[5px] right-[3px] h-4 w-4 rounded-full bg-[#0EA5E9] z-0"></span>
                                 )}
                             </button>
-
-                            {/* Dropdown Menu (Glassmorphism) */}
-                            {isNotificationMenuOpen && (
-                                <div className="absolute right-0 mt-2 w-80 bg-slate-900/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl py-2 z-50 animate-in fade-in slide-in-from-top-4 duration-200">
-                                    <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between">
-                                        <h3 className="text-white font-bold tracking-wide">Notifiche</h3>
-                                        {unreadCount > 0 && (
-                                            <button
-                                                onClick={() => markAllAsRead()}
-                                                className="text-xs text-[var(--color-primary)] hover:text-white transition-colors"
-                                            >
-                                                Segna tutte lette
-                                            </button>
-                                        )}
-                                    </div>
-                                    <div className="max-h-72 overflow-y-auto custom-scrollbar">
-                                        {notifications.length === 0 ? (
-                                            <div className="px-4 py-8 text-center text-slate-400 text-sm">
-                                                Nessuna nuova notifica
-
-                                                {/* Hidden dev button triggers for testing */}
-                                                <div className="mt-4 flex gap-2 justify-center">
-                                                    <button
-                                                        onClick={() => {
-                                                            addToast("Hai ricevuto un'offerta di €150 per Rrd Firemove 120L", 'success');
-                                                            addNotification({ title: 'Nuova Offerta', message: "Hai ricevuto un'offerta di €150 per Rrd Firemove 120L", type: 'offer' });
-                                                        }}
-                                                        className="text-[10px] bg-white/5 p-1 rounded hover:bg-white/10"
-                                                    >Test Offerta</button>
-                                                    <button
-                                                        onClick={() => {
-                                                            addToast("Il tuo QR Code per lo scambio sicuro è pronto!", 'info');
-                                                            addNotification({ title: 'QR Code Pronto', message: "Il tuo QR Code per lo scambio sicuro è pronto!", type: 'system' });
-                                                        }}
-                                                        className="text-[10px] bg-white/5 p-1 rounded hover:bg-white/10"
-                                                    >Test QR</button>
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            notifications.map((notif) => (
-                                                <div
-                                                    key={notif.id}
-                                                    onClick={() => markAsRead(notif.id)}
-                                                    className={`px-4 py-3 hover:bg-white/5 cursor-pointer transition-colors border-l-2 ${notif.read ? 'border-transparent opacity-60' : 'border-[var(--color-primary)] bg-white/[0.02]'}`}
-                                                >
-                                                    <p className="text-sm font-bold text-white mb-0.5">{notif.title}</p>
-                                                    <p className="text-xs text-slate-300">{notif.message}</p>
-                                                    <p className="text-[10px] text-slate-500 mt-2">
-                                                        {new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                    </p>
-                                                </div>
-                                            ))
-                                        )}
-                                    </div>
-                                </div>
-                            )}
                         </div>
 
                         {user ? (
